@@ -1,50 +1,96 @@
-# React + TypeScript + Vite
+# RUNE: Your AI Study Companion
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Overview
 
-Currently, two official plugins are available:
+**RUNE** is an advanced AI-powered platform designed to streamline and enhance the digital learning experience. By leveraging natural language processing (NLP) and machine learning techniques, RUNE transforms traditional educational content into interactive and digestible study aids. This tool is tailored for students to overcome challenges like information overload, unorganized materials, and limited learning support.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Core Features
 
-## Expanding the ESLint configuration
+- **Automated Content Processing**: Extracts and summarizes information from digital resources (e.g., PDFs) into concise formats.
+- **Interactive Study Aids**: Creates flashcards, multiple-choice questions (MCQs), diagrams, and summaries for active learning.
+- **Real-Time Doubt Resolution**: Provides instant clarifications for student queries through an intuitive interface.
+- **Curriculum Alignment**: Organizes study material as per syllabus requirements to ensure relevance.
+- **Personalized Learning Paths**: Adapts to individual learning preferences, enabling a unique and efficient study approach.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Technologies Used
 
-- Configure the top-level `parserOptions` property like this:
+- **Frontend**: React.js for a responsive and user-friendly interface.
+- **Backend**: Flask framework for seamless integration of data flow and processing.
+- **AI Model**: Llama for NLP functionalities like summarization, content generation, and question-answering.
+- **Database**: Vector database for efficient retrieval and storage of high-dimensional embeddings.
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## System Architecture
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+The architecture is modular, scalable, and consists of the following components:
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+1. **Frontend (React)**: Provides the interface for interaction with features like summaries, flashcards, and doubts.
+2. **Backend (Flask)**: Coordinates the data flow between the frontend and the AI model.
+3. **Vector Database**: Optimizes information retrieval, ensuring fast and contextually accurate responses.
+4. **Large Language Model (LLM)**: Powers the core functionalities, including summarization and MCQ generation.
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+## Installation Guide
+
+Follow the steps below to set up RUNE locally:
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/your-username/RUNE.git
+   ```
+
+2. Navigate to the project directory:
+
+   ```bash
+   cd RUNE
+   ```
+
+3. Install dependencies:
+
+   ```bash
+   npm install && pip install -r requirements.txt
+   ```
+
+4. Run the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+5. Access the app on your browser at `http://localhost:3000`.
+
+## Contribution Guidelines
+
+We welcome contributions! To get started:
+
+1. Fork the repository.
+2. Create a feature branch:
+   ```bash
+   git checkout -b feature-name
+   ```
+3. Commit changes with clear descriptions.
+   ```bash
+   git commit -m "Description of changes"
+   ```
+4. Push your branch and submit a pull request.
+
+## Team
+
+This project was developed by a dedicated team of students:
+
+- **Abhimanue J R**
+- **Bijin Elias Mathew**
+- **Bimal Devasia**
+- **Devadarsh M R**
+- **Mohammed Hashique A**
+
+## Acknowledgments
+
+Our heartfelt gratitude to:
+
+- **Project Guide**: Kala M T
+- **Project Coordinators**: Binu R and Ali Akbar N
+- Teaching and non-teaching staff of the Department of Computer Science and Engineering, GEC Palakkad.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
