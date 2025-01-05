@@ -15,14 +15,17 @@ const navlinks=[
     {id:"About us",icons:<RiInformation2Line className="w-6 h-6" />}
     ]
 
-
+    interface userInfo{
+        id:string
+        email:string
+    }
 
     interface props{
         setIsSelected:(id:string)=>void
         isSelected:string
-        user:any[]
+        user:userInfo
+    
     }
-
     
 function SideBar(props:props) {
 
@@ -82,12 +85,12 @@ function SideBar(props:props) {
             <div className="bg-primary_grey h-36 px-3 flex flex-col justify-between py-3 rounded-xl">
                 <div className="flex items-center gap-2 ">
                     <img src="./user.jpeg" alt="" className="w-11 h-11 object-cover object-center rounded-full"/>
-                    {props.user.map((items,index)=>(
-                        <div key={index}>
-                        <p className="text-[14px]">{items.id}</p>
-                        <p className="text-[13px]">{items.email}</p>
+                    
+                        <div >
+                        <p className="text-[14px]">{props.user.id}</p>
+                        <p className="text-[13px]">{props.user.email}</p>
                         </div>
-                    ))}
+                   
                     <button className="ml-auto">
                         Logout
                     </button>
