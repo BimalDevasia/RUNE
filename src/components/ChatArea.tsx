@@ -3,6 +3,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { IoBookOutline } from "react-icons/io5";
 import { IoSend } from "react-icons/io5";
 import "./customscroll.css"
+import Pdfupload from "./Pdfupload";
 interface Message {
   type: "incoming" | "outgoing";
   message: string;
@@ -79,6 +80,16 @@ function ChatArea({ user }: ChatAreaProps) {
       }
     }
   };
+
+  const uploadSylabus=()=>{
+
+  }
+
+  const uploadNotes=()=>{
+
+  }
+
+
 
   return (
     <div
@@ -176,7 +187,32 @@ function ChatArea({ user }: ChatAreaProps) {
           </form>
         </div>
       </div>
-      <div className="w-1/4"></div>
+      <div className="w-1/4">
+
+      <div
+          className={`h-16 px-10 flex justify-between items-center font-medium text-2xl border-b ${
+            theme === "dark" ? "border-white/50" : "border-primary_grey/50"
+          }`}
+        >
+          {/* here is the place for that code  */}
+          
+          </div>
+
+          <div className="px-5">
+          <div>
+          <p className="py-2 pt-3">Upload syllabus</p>
+          <Pdfupload uploadFile={uploadSylabus}/>
+
+          </div>
+
+            <div>
+            <p className="py-2 pt-3">Upload notes</p>
+            <Pdfupload uploadFile={uploadNotes}/>
+            </div>
+
+
+          </div>
+      </div>
     </div>
   );
 }
