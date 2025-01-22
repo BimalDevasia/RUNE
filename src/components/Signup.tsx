@@ -125,9 +125,9 @@ function Signup() {
             </div>
             <div className="w-1/2 h-full">
                 <img
-                    src="./login.png"
+                    src="./robo.png"
                     alt=""
-                    className="w-full h-full object-cover object-center"
+                    className="w-full h-full object-cover object-right "
                 />
             </div>
         </div>
