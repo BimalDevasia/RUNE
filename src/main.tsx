@@ -5,6 +5,7 @@ import { ThemeProvider } from './contexts/ThemeContext.tsx'
 import './index.css'
 import App from './App.tsx'
 import Profile from './components/Profile.tsx'
+import Login from './components/Login.tsx'
 
 createRoot(document.getElementById('root')!).render(
 
@@ -16,6 +17,7 @@ createRoot(document.getElementById('root')!).render(
       <Route path="/profile" element={<Profile />} >
         <Route path=":proid" element={<Profile/>}/>
       </Route>
+      <Route path="/login" element={<Login/>} />
     </Routes>
     </BrowserRouter>
     </ThemeProvider>
