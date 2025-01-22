@@ -96,7 +96,7 @@ function ChatArea({ user }: ChatAreaProps) {
       className={`flex max-h-[calc(100svh-2rem)] h-[calc(100svh-2rem)] ${
         theme === "dark"
           ? "bg-primary_grey text-white"
-          : "bg-primary_grey/30 text-black"
+          : "bg-black/10 text-black"
       } flex-1 my-4 mr-4 rounded-[20px] font-roboto`}
     >
       <div
@@ -112,7 +112,7 @@ function ChatArea({ user }: ChatAreaProps) {
           <div>Welcome {user.id}!</div>
           <IoBookOutline
             className={`w-6 h-6 cursor-pointer ${
-              isBookMarked ? "text-primary_green" : "text-white"
+              isBookMarked ? "text-primary_green" : theme==="dark"?"text-white":"text-black"
             }`}
             onClick={handleBookmark}
           />
@@ -132,7 +132,7 @@ function ChatArea({ user }: ChatAreaProps) {
                     item.type === "incoming"
                       ? theme === "dark"
                         ? "bg-gray-700"
-                        : "bg-gray-200"
+                        : "bg-white"
                       : "bg-primary_green text-white"
                   } `}
                 >
