@@ -4,10 +4,16 @@ import { IoBookOutline } from "react-icons/io5";
 import { IoSend } from "react-icons/io5";
 import "./customscroll.css"
 import Pdfupload from "./Pdfupload";
+import {
+  QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import axios from "axios";
 interface Message {
-  type: "incoming" | "outgoing";
-  message: string;
-  timestamp?: Date;
+  is_bot: boolean;
+  content: string;
 }
 
 interface UserInfo {
@@ -21,29 +27,63 @@ interface ChatAreaProps {
   user: UserInfo;
 }
 
-function ChatArea({ user }: ChatAreaProps) {
+function ChatArea({ user, isSelected }: ChatAreaProps) {
   const [isBookMarked, setIsBookMarked] = useState(false);
   const { theme } = useTheme();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [currentMessage, setCurrentMessage] = useState("");
+  const queryClient = useQueryClient();
+
+  const chatquery = useQuery({
+    queryKey: ["messages", isSelected],
+    queryFn: async () => {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL!}/chat/${isSelected}/messages`
+      );
+      return res.data.messages.map((message) => ({
+        ...message,
+        is_bot: message.is_bot === "1" ? true : false,
+      }));
+    },
+    disabled: isSelected === "",
+  });
+
+  // const pdfquery = useQuery({
+  //   queryKey: ["messages", isSelected],
+  //   queryFn: async () => {
+  //     const res = await axios.get(
+  //       `${import.meta.env.VITE_API_URL!}/chat/${isSelected}/pdfs`
+  //     );
+  //     return {};
+  //   },
+  //   disabled: isSelected === "",
+  // });
+
+  const { mutate: sendChatMutation } = useMutation({
+    mutationFn: async (message: string) => {
+      return await axios
+        .post(`${import.meta.env.VITE_API_URL!}/chat`, {
+          message,
+          chat_id: isSelected,
+        })
+        .then((response) => response.data);
+    },
+    onSuccess: () => {
+      chatquery.refetch();
+    },
+  });
 
   const messageDummy: Message[] = [
-    { type: "outgoing", message: "hello", timestamp: new Date() },
-    { type: "incoming", message: "how are you", timestamp: new Date() },
-    { type: "outgoing", message: "fine", timestamp: new Date() },
-    { type: "incoming", message: "what do you want", timestamp: new Date() },
+    { is_bot: false, content: "hello" },
+    { is_bot: true, content: "how are you" },
+    { is_bot: false, content: "fine" },
+    { is_bot: true, content: "what do you want" },
   ];
-
-  const [messages, setMessages] = useState<Message[]>(messageDummy);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -68,12 +108,18 @@ function ChatArea({ user }: ChatAreaProps) {
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (currentMessage.trim()) {
-      const newMessage: Message = {
-        type: "outgoing",
-        message: currentMessage.trim(),
-        timestamp: new Date(),
-      };
-      setMessages([...messages, newMessage]);
+      // const newMessage: Message = {
+      //   is_bot: false,
+      //   content: currentMessage.trim(),
+      // };
+      queryClient.setQueryData(["messages", isSelected], (oldData) => [
+        ...oldData,
+        {
+          is_bot: false,
+          content: currentMessage.trim(),
+        },
+      ]);
+      sendChatMutation(currentMessage.trim());
       setCurrentMessage("");
       if (textareaRef.current) {
         textareaRef.current.style.height = "inherit";
@@ -81,15 +127,52 @@ function ChatArea({ user }: ChatAreaProps) {
     }
   };
 
-  const uploadSylabus=()=>{
+  // ... existing code ...
+  const uploadSylabus = async (file: File) => {
+    console.log({
+      file,
+    });
+    const formData = new FormData();
 
-  }
+    formData.append("file", file); // Append the file to the FormData object
 
-  const uploadNotes=()=>{
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL!}/upload`, {
+        method: "POST",
+        body: formData,
+        // headers: {
+        //   "Content-Type": "multipart/form-data", // Not needed with FormData
+        // },
+      });
+      // const data = await response.json(); // Handle the response
+      // console.log(data);
+    } catch (error) {
+      console.error("Error uploading file:", error); // Handle the error
+    }
+  };
 
-  }
+  const uploadNotes = async (file: File) => {
+    console.log({
+      file,
+    });
+    const formData = new FormData();
+    formData.append("file", file); // Append the file to the FormData object
 
-
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL!}/upload`, {
+        method: "POST",
+        body: formData,
+        // headers: {
+        //   "Content-Type": "multipart/form-data", // Not needed with FormData
+        // },
+      });
+      // const data = await response.json(); // Handle the response
+      // console.log(data);
+    } catch (error) {
+      console.error("Error uploading file:", error); // Handle the error
+    }
+  };
+  // ... existing code ...
 
   return (
     <div
@@ -112,7 +195,11 @@ function ChatArea({ user }: ChatAreaProps) {
           <div>Welcome {user.id}!</div>
           <IoBookOutline
             className={`w-6 h-6 cursor-pointer ${
-              isBookMarked ? "text-primary_green" : theme==="dark"?"text-white":"text-black"
+              isBookMarked
+                ? "text-primary_green"
+                : theme === "dark"
+                ? "text-white"
+                : "text-black"
             }`}
             onClick={handleBookmark}
           />
@@ -120,26 +207,48 @@ function ChatArea({ user }: ChatAreaProps) {
 
         <div className="flex-1 flex flex-col px-10 overflow-hidden">
           <div className="flex-1 py-4 px-2 space-y-4 flex flex-col  overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent custom-scroll">
-            {messages.map((item, index) => (
+            {/* {messages.map((item, index) => (
               <div
                 key={index}
                 className={`flex w-full ${
-                  item.type === "incoming" ? "justify-start" : "justify-end"
+                  item.is_bot !== false ? "justify-start" : "justify-end"
                 }`}
               >
                 <div
                   className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                    item.type === "incoming"
+                    item.is_bot !== false
                       ? theme === "dark"
                         ? "bg-gray-700"
                         : "bg-white"
                       : "bg-primary_green text-white"
                   } `}
                 >
-                  {item.message}
+                  {item.content}
                 </div>
               </div>
-            ))}
+            ))} */}
+
+            {chatquery.data &&
+              chatquery.data?.map((item, index) => (
+                <div
+                  key={index}
+                  className={`flex w-full ${
+                    item.is_bot !== false ? "justify-start" : "justify-end"
+                  }`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                      item.is_bot !== false
+                        ? theme === "dark"
+                          ? "bg-gray-700"
+                          : "bg-white"
+                        : "bg-primary_green text-white"
+                    } `}
+                  >
+                    {item.content}
+                  </div>
+                </div>
+              ))}
             <div ref={messagesEndRef} />
           </div>
 
@@ -188,30 +297,25 @@ function ChatArea({ user }: ChatAreaProps) {
         </div>
       </div>
       <div className="w-1/4">
-
-      <div
+        <div
           className={`h-16 px-10 flex justify-between items-center font-medium text-2xl border-b ${
             theme === "dark" ? "border-white/50" : "border-primary_grey/50"
           }`}
         >
           {/* here is the place for that code  */}
-          
-          </div>
+        </div>
 
-          <div className="px-5">
+        <div className="px-5">
           <div>
-          <p className="py-2 pt-3">Upload syllabus</p>
-          <Pdfupload uploadFile={uploadSylabus}/>
-
+            <p className="py-2 pt-3">Upload syllabus</p>
+            <Pdfupload uploadFile={uploadSylabus} />
           </div>
 
-            <div>
+          <div>
             <p className="py-2 pt-3">Upload notes</p>
-            <Pdfupload uploadFile={uploadNotes}/>
-            </div>
-
-
+            <Pdfupload uploadFile={uploadNotes} />
           </div>
+        </div>
       </div>
     </div>
   );

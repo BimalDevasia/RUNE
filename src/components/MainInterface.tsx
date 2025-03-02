@@ -4,7 +4,7 @@ import ChatArea from './ChatArea'
 import { useTheme } from '../contexts/ThemeContext'
 const user={id:"Sasi",email:"sasi@gmail.com",img:""}
 function MainInterface() {
-    const [isSelected,setIsSelected] =useState("New Chat")
+    const [isSelected, setIsSelected] = useState("");
     const {theme} = useTheme()
     
   return (
