@@ -220,7 +220,7 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
             theme === "dark" ? "border-white/50" : "border-primary_grey/50"
           }`}
         >
-          <div>Welcome {user.id}!</div>
+          <div>Welcome {user.name}!</div>
           <IoBookOutline
             className={`w-6 h-6 cursor-pointer ${
               isBookMarked
