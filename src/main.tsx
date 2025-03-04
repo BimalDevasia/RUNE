@@ -8,6 +8,9 @@ import Profile from './components/Profile.tsx'
 import Login from './components/Login.tsx'
 import Signup from './components/Signup.tsx'
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import NewChatInterface from "./components/NewChatInterface.tsx";
+
+
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 const queryClient = new QueryClient();
@@ -19,7 +22,9 @@ createRoot(document.getElementById("root")!).render(
           <BrowserRouter>
             <Routes>
               <Route element={<ProtectedRoute />}>
-                <Route path="/" element={<App />} />
+                 <Route path="/" element={<NewChatInterface />} />
+                 <Route path="/chat/:chat_id" element={<App />} />
+                 <Route path="/profile" element={<Profile />}>
               </Route>
               {/* <Route path="/profile" element={<Profile />}>
                 <Route path=":proid" element={<Profile />} />
@@ -29,7 +34,7 @@ createRoot(document.getElementById("root")!).render(
             </Routes>
           </BrowserRouter>
         </ThemeProvider>
-      </AuthProvider>
+
     </QueryClientProvider>
   </StrictMode>
 );

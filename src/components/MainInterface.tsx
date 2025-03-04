@@ -10,12 +10,15 @@ function MainInterface() {
     const {theme} = useTheme()
     
   return (
-    <div className={`flex ${theme==="dark"?"bg-black":"bg-white"}`}>
-        <SideBar setIsSelected={setIsSelected} isSelected={isSelected} user={user}/>
-        <ChatArea setIsSelected={setIsSelected} isSelected={isSelected} user={user} />
-      
+    <div className={`flex ${theme === "dark" ? "bg-black" : "bg-white"}`}>
+      <SideBar user={user} />
+      <ChatArea
+        setIsSelected={setIsSelected}
+        isSelected={isSelected}
+        user={user}
+      />
     </div>
-  )
+  );
 }
 
 export default MainInterface
