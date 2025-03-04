@@ -2,8 +2,10 @@ import { useState } from 'react'
 import SideBar from './SideBar'
 import ChatArea from './ChatArea'
 import { useTheme } from '../contexts/ThemeContext'
-const user={id:"Sasi",email:"sasi@gmail.com",img:""}
+import { useAuth } from '../contexts/AuthContext';
+
 function MainInterface() {
+  const {user}=useAuth()
     const [isSelected, setIsSelected] = useState("");
     const {theme} = useTheme()
     

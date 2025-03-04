@@ -9,6 +9,9 @@ import { MdOutlineLightMode } from "react-icons/md";
 import "./customscroll.css"
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import {useState} from 'react'
 const navlinks = [
   { id: "New Chat", icons: <FiPlusCircle className="w-6 h-6" /> },
   { id: "Bookmark chats", icons: <IoBookOutline className="w-6 h-6" /> },
@@ -43,7 +46,17 @@ function SideBar(props: props) {
   });
 
   const content = query.isLoading ? [] : query.data;
-
+const { logout } = useAuth();
+  const navigate = useNavigate();
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login'); // Redirect to login page after logout
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
   return (
     <div
       className={`max-h-svh h-svh w-1/5 ${
@@ -106,11 +119,33 @@ function SideBar(props: props) {
             />
 
             <div>
-              <p className="text-[14px]">{props.user.id}</p>
+              <p className="text-[14px]">{props.user.name}</p>
               <p className="text-[13px]">{props.user.email}</p>
             </div>
 
-            <button className="ml-auto">Logout</button>
+            <button className="ml-auto" onClick={() => setShowConfirmation(true)}>Logout</button>
+            {showConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[#09090A] border border-[#DDC165] p-6 rounded-lg max-w-sm w-full">
+            <h3 className="text-xl text-white mb-4">Confirm Logout</h3>
+            <p className="text-gray-300 mb-6">Are you sure you want to logout?</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowConfirmation(false)}
+                className="px-4 py-2 border border-gray-500 text-white rounded hover:bg-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
           </div>
 
           <div
