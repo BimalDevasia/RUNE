@@ -1,21 +1,18 @@
 import { FiPlusCircle } from "react-icons/fi";
 import { IoBookOutline } from "react-icons/io5";
-import { IoMdNotificationsOutline } from "react-icons/io";
 import { MdOutlineSettings } from "react-icons/md";
 import { RiInformation2Line } from "react-icons/ri";
 import { useTheme } from "../contexts/ThemeContext";
 import { MdDarkMode } from "react-icons/md";
 import { MdOutlineLightMode } from "react-icons/md";
-import "./customscroll.css"
+import "./customscroll.css";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { Link, useLocation, useParams } from "react-router";
+import { useState } from "react";
+import { twMerge } from "tailwind-merge";
 const navlinks = [
-  { id: "New Chat", icons: <FiPlusCircle className="w-6 h-6" /> },
   { id: "Bookmark chats", icons: <IoBookOutline className="w-6 h-6" /> },
-  {
-    id: "Notifications",
-    icons: <IoMdNotificationsOutline className="w-6 h-6" />,
-  },
   { id: "Settings", icons: <MdOutlineSettings className="w-6 h-6" /> },
   { id: "About us", icons: <RiInformation2Line className="w-6 h-6" /> },
 ];
@@ -26,15 +23,17 @@ interface userInfo {
 }
 
 interface props {
-  setIsSelected: (id: string) => void;
-  isSelected: string;
   user: userInfo;
 }
 
 function SideBar(props: props) {
   const { theme, toggleTheme } = useTheme();
+  const [isSelected, setIsSelected] = useState("");
+  const location = useLocation();
+  const pathname = location.pathname;
+  const { chat_id } = useParams();
   const query = useQuery({
-    queryKey: ["q"],
+    queryKey: ["chats"],
     queryFn: async () => {
       const response = await axios.get(`${import.meta.env.VITE_API_URL!}/chat`);
 
@@ -42,7 +41,7 @@ function SideBar(props: props) {
     },
   });
 
-  const content = query.isLoading ? [] : query.data;
+  const chats = query.isLoading ? [] : query.data;
 
   return (
     <div
@@ -61,14 +60,24 @@ function SideBar(props: props) {
         </p>
       </div>
       <div>
+        <Link
+          className={twMerge(
+            "flex gap-4 items-center cursor-pointer px-4 rounded-xl h-10 ",
+            pathname === "/" && "bg-primary_green"
+          )}
+          to="/"
+        >
+          <FiPlusCircle className="w-6 h-6" />{" "}
+          <p className="font-semibold">New Chat</p>
+        </Link>
         {navlinks.map((items) => {
           return (
             <div
               key={items.id}
               className={`flex gap-4 items-center cursor-pointer ${
-                props.isSelected === items.id ? "bg-primary_green" : ""
+                isSelected === items.id ? "bg-primary_green" : ""
               } px-4 rounded-xl h-10 `}
-              onClick={() => props.setIsSelected(items.id)}
+              onClick={() => setIsSelected(items.id)}
             >
               {items.icons} <p className="font-semibold">{items.id}</p>
             </div>
@@ -76,18 +85,27 @@ function SideBar(props: props) {
         })}
       </div>
       <hr className="m-0 " />
-      {(props.isSelected === "New Chat" && (
+      {(isSelected === "New Chat" && (
         <p className=" font-semibold">Recent Chats</p>
       )) ||
-        (props.isSelected === "Bookmark chats" && (
+        (isSelected === "Bookmark chats" && (
           <p className=" font-semibold">Bookmark Chats</p>
         ))}
       <div className="flex-1 overflow-auto px-4 font-roboto custom-scroll ">
         <div className="overflow-y-auto flex-1   font-light text-sm flex flex-col gap-1">
-          {content.map((content) => (
-            <div onClick={() => props.setIsSelected(content.chat_id)}>
-              {content.title}
-            </div>
+          {chats.map((chat) => (
+            <Link
+              key={chat.chat_id}
+              className={twMerge(
+                "border border-white/50 px-3 py-2 rounded-sm",
+                chat_id === chat.chat_id &&
+                  "bg-white/70 text-black font-medium",
+                chat_id !== chat.chat_id && "hover:bg-slate-700"
+              )}
+              to={`/chat/${chat.chat_id}`}
+            >
+              {chat.title}
+            </Link>
           ))}
         </div>
       </div>
