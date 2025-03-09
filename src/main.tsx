@@ -9,7 +9,7 @@ import Login from './components/Login.tsx'
 import Signup from './components/Signup.tsx'
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import NewChatInterface from "./components/NewChatInterface.tsx";
-
+import MainPage from './components/MainPage.tsx'
 
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -21,8 +21,9 @@ createRoot(document.getElementById("root")!).render(
         <ThemeProvider>
           <BrowserRouter>
             <Routes>
+              <Route path="/" element={<MainPage/>}/>
               <Route element={<ProtectedRoute />}>
-                <Route path="/" element={<NewChatInterface />} />
+                <Route path="/chat" element={<NewChatInterface />} />
                 <Route path="/chat/:chat_id" element={<App />} />
                 <Route path="/profile" element={<Profile />} />
               </Route>

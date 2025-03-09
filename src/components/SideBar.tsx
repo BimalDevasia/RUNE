@@ -108,7 +108,7 @@ function SideBar(props: props) {
         ))}
       <div className="flex-1 overflow-auto px-4 font-roboto custom-scroll ">
         <div className="overflow-y-auto flex-1   font-light text-sm flex flex-col gap-1">
-          {chats?.map((chat) => (
+          {chats?.map((chat:any) => (
             <Link
               key={chat.chat_id}
               className={twMerge(
