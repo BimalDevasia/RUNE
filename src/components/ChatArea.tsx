@@ -4,17 +4,10 @@ import { IoBookOutline } from "react-icons/io5";
 import { IoSend } from "react-icons/io5";
 import "./customscroll.css"
 import Pdfupload from "./Pdfupload";
-import {
-  QueryClient,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-interface Message {
-  is_bot: boolean;
-  content: string;
-}
+import { useNavigate, useParams } from "react-router";
+import { DeleteIcon } from "lucide-react";
 
 interface UserInfo {
   id: string;
@@ -34,19 +27,36 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [currentMessage, setCurrentMessage] = useState("");
   const queryClient = useQueryClient();
+  const [finalMessage, setFinalMessage] = useState("");
+  const [chatStage, setChatStage] = useState<"idle" | "active">("idle");
+  const navigate = useNavigate();
+  const { chat_id } = useParams();
 
   const chatquery = useQuery({
-    queryKey: ["messages", isSelected],
+    queryKey: ["messages", chat_id],
     queryFn: async () => {
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL!}/chat/${isSelected}/messages`
+        `${import.meta.env.VITE_API_URL!}/api/chat/${chat_id}/messages`
       );
-      return res.data.messages.map((message) => ({
-        ...message,
-        is_bot: message.is_bot === "1" ? true : false,
-      }));
+      setChatStage("idle");
+      setFinalMessage("");
+      return res.data.messages;
     },
     disabled: isSelected === "",
+  });
+
+  const deleteChatMutation = useMutation({
+    mutationFn: async () => {
+      const res = await axios.delete(
+        `${import.meta.env.VITE_API_URL!}/api/chat/${chat_id}/`
+      );
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["chats"],
+      });
+    },
   });
 
   // const pdfquery = useQuery({
@@ -62,24 +72,59 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
 
   const { mutate: sendChatMutation } = useMutation({
     mutationFn: async (message: string) => {
-      return await axios
-        .post(`${import.meta.env.VITE_API_URL!}/chat`, {
-          message,
-          chat_id: isSelected,
-        })
-        .then((response) => response.data);
+      setChatStage("active");
+      scrollToBottom();
+      const token = localStorage.getItem("token") ?? "";
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL!}/api/chat/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            message,
+            chat_id,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      // Create a reader for the streaming response
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No reader available on response body.");
+
+      const decoder = new TextDecoder("utf-8");
+      let fullMessage = "";
+      let done = false;
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          // Decode the received chunk and update the message state
+          const chunk = decoder.decode(value, { stream: !done });
+          fullMessage += chunk;
+          setFinalMessage(fullMessage);
+          scrollToBottom();
+        }
+      }
+
+      return fullMessage;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Optionally perform additional actions on success if needed.
+      console.log("Final message:", data);
       chatquery.refetch();
     },
+    onError: () => {
+      setChatStage("idle");
+    },
   });
-
-  const messageDummy: Message[] = [
-    { is_bot: false, content: "hello" },
-    { is_bot: true, content: "how are you" },
-    { is_bot: false, content: "fine" },
-    { is_bot: true, content: "what do you want" },
-  ];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -112,7 +157,7 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
       //   is_bot: false,
       //   content: currentMessage.trim(),
       // };
-      queryClient.setQueryData(["messages", isSelected], (oldData) => [
+      queryClient.setQueryData(["messages", chat_id], (oldData) => [
         ...oldData,
         {
           is_bot: false,
@@ -135,17 +180,18 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
     const formData = new FormData();
 
     formData.append("file", file); // Append the file to the FormData object
+    formData.append("chat_id", chat_id);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL!}/upload`, {
-        method: "POST",
-        body: formData,
-        // headers: {
-        //   "Content-Type": "multipart/form-data", // Not needed with FormData
-        // },
-      });
-      // const data = await response.json(); // Handle the response
-      // console.log(data);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL!}/upload/new`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      const data = await response.json(); // Handle the response
+      console.log(data);
     } catch (error) {
       console.error("Error uploading file:", error); // Handle the error
     }
@@ -157,17 +203,14 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
     });
     const formData = new FormData();
     formData.append("file", file); // Append the file to the FormData object
-
+    formData.append("chat_id", chat_id);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL!}/upload`, {
         method: "POST",
         body: formData,
-        // headers: {
-        //   "Content-Type": "multipart/form-data", // Not needed with FormData
-        // },
       });
-      // const data = await response.json(); // Handle the response
-      // console.log(data);
+      const data = await response.json(); // Handle the response
+      console.log(data);
     } catch (error) {
       console.error("Error uploading file:", error); // Handle the error
     }
@@ -192,17 +235,27 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
             theme === "dark" ? "border-white/50" : "border-primary_grey/50"
           }`}
         >
-          <div>Welcome {user.id}!</div>
-          <IoBookOutline
-            className={`w-6 h-6 cursor-pointer ${
-              isBookMarked
-                ? "text-primary_green"
-                : theme === "dark"
-                ? "text-white"
-                : "text-black"
-            }`}
-            onClick={handleBookmark}
-          />
+          <div>Welcome {user.name}!</div>
+          <div className="flex gap-4">
+            <button
+              onClick={async () => {
+                deleteChatMutation.mutateAsync();
+                navigate("/");
+              }}
+            >
+              <DeleteIcon className="w-6 h-6" />
+            </button>
+            <IoBookOutline
+              className={`w-6 h-6 cursor-pointer ${
+                isBookMarked
+                  ? "text-primary_green"
+                  : theme === "dark"
+                  ? "text-white"
+                  : "text-black"
+              }`}
+              onClick={handleBookmark}
+            />
+          </div>
         </div>
 
         <div className="flex-1 flex flex-col px-10 overflow-hidden">
@@ -249,6 +302,17 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
                   </div>
                 </div>
               ))}
+            {chatStage === "active" && finalMessage !== "" && (
+              <div className={`flex w-full justify-start`}>
+                <div
+                  className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                    theme === "dark" ? "bg-gray-700" : "bg-white"
+                  } `}
+                >
+                  {finalMessage}
+                </div>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
 
@@ -267,6 +331,7 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
                 ref={textareaRef}
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
+                disabled={chatStage === "active"}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
@@ -283,12 +348,9 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
               />
               <button
                 type="submit"
-                className={`p-2 rounded-lg transition-colors ${
-                  currentMessage.trim()
-                    ? "text-primary_green hover:bg-primary_green/10"
-                    : "text-gray-400"
-                }`}
-                disabled={!currentMessage.trim()}
+                className="p-2 rounded-lg transition-colors text-primary_green hover:bg-primary_green/10
+                    disabled:text-gray-400"
+                disabled={!currentMessage.trim() && chatStage === "active"}
               >
                 <IoSend className="w-5 h-5 cursor-pointer" />
               </button>

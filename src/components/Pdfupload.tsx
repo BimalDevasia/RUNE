@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Upload } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { twMerge } from "tailwind-merge";
 
 interface PDFUploadProps {
   onFileUpload?: (file: File) => void;
@@ -13,13 +14,17 @@ interface ThemeContextType {
 
 function PDFUpload({ onFileUpload, uploadFile }: PDFUploadProps): JSX.Element {
   const [isDragging, setIsDragging] = useState<boolean>(false);
+
   const [loading, setLoading] = useState(false);
+
   const [file, setFile] = useState<File | null>(null);
+
   const { theme } = useTheme() as ThemeContextType;
 
   const clearpdf = () => {
     setFile(null);
   };
+
   const handleDrag = useCallback((e: React.DragEvent): void => {
     e.preventDefault();
     e.stopPropagation();
@@ -51,21 +56,22 @@ function PDFUpload({ onFileUpload, uploadFile }: PDFUploadProps): JSX.Element {
   return (
     <form action="">
       <div
-        className={`w-full p-2 rounded-lg ${
+        className={twMerge(
+          "w-full p-2 rounded-lg flex flex-col justify-center items-center",
           theme == "dark" ? "bg-black" : "bg-white"
-        } flex flex-col justify-center items-center`}
+        )}
       >
         <div className=" w-full  ">
           <div
-            className={`border-2 border-dashed rounded-lg w-full text-center cursor-pointer h-[67px] flex justify-center items-center
-          ${
-            isDragging
-              ? "border-primary_green bg-primary_green/10"
-              : theme === "dark"
-              ? "border-white/20 bg-white/20"
-              : "border-primary_grey/20 bg-black/20"
-          }
-          ${file ? "bg-primary_green/5" : ""}`}
+            className={twMerge(
+              "border-2 border-dashed rounded-lg w-full text-center cursor-pointer h-[67px] flex justify-center items-center",
+              isDragging
+                ? "border-primary_green bg-primary_green/10"
+                : theme === "dark"
+                ? "border-white/20 bg-white/20"
+                : "border-primary_grey/20 bg-black/20",
+              file ? "bg-primary_green/5" : ""
+            )}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
@@ -89,9 +95,10 @@ function PDFUpload({ onFileUpload, uploadFile }: PDFUploadProps): JSX.Element {
               ) : (
                 <div>
                   <p
-                    className={`text-sm ${
+                    className={twMerge(
+                      `text-sm`,
                       theme === "dark" ? "text-white/50" : "text-black/50"
-                    }`}
+                    )}
                   >
                     Drag and Drop file here
                   </p>
@@ -106,9 +113,10 @@ function PDFUpload({ onFileUpload, uploadFile }: PDFUploadProps): JSX.Element {
           <div className="flex gap-3 w-full text-sm">
             <button
               onClick={clearpdf}
-              className={`flex-1 justify-center items-center flex rounded-md py-1 ${
+              className={twMerge(
+                "flex-1 justify-center items-center flex rounded-md py-1",
                 theme === "dark" ? "bg-white/20" : "bg-black/20"
-              }`}
+              )}
             >
               Cancel
             </button>
@@ -122,7 +130,7 @@ function PDFUpload({ onFileUpload, uploadFile }: PDFUploadProps): JSX.Element {
                   setLoading(false);
                 }
               }}
-              className={`flex-1 justify-center items-center flex rounded-md py-1 bg-primary_green`}
+              className="flex-1 justify-center items-center flex rounded-md py-1 bg-primary_green"
               disabled={!file}
             >
               {loading ? "Loading" : "Upload"}
