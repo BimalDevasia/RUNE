@@ -9,7 +9,7 @@ const NewChatInterface = () => {
     <>
       <div className={`flex ${theme === "dark" ? "bg-black" : "bg-white"}`}>
         <SideBar user={user} />
-        <NewChat user={user} />
+        <NewChat />
       </div>
     </>
   );

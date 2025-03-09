@@ -5,21 +5,14 @@ import "./customscroll.css";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useNavigate } from "react-router";
+import { useAuth } from "../contexts/AuthContext";
 
-interface UserInfo {
-  id: string;
-  email: string;
-}
-
-interface NewChatProps {
-  user: UserInfo;
-}
-
-function NewChat({ user }: NewChatProps) {
+function NewChat() {
   const { theme } = useTheme();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [currentMessage, setCurrentMessage] = useState("");
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -36,7 +29,7 @@ function NewChat({ user }: NewChatProps) {
 
   const { mutate: sendChatMutation } = useMutation({
     mutationFn: async (title: string) => {
-      return axios.post(`${import.meta.env.VITE_API_URL!}/chat/new`, {
+      return axios.post(`${import.meta.env.VITE_API_URL!}/api/chat/new`, {
         title,
       });
     },
@@ -98,7 +91,7 @@ function NewChat({ user }: NewChatProps) {
             theme === "dark" ? "border-white/50" : "border-primary_grey/50"
           }`}
         >
-          <div>Welcome {user.id}!</div>
+          <div>Welcome {user?.name}!</div>
         </div>
 
         <div className="flex-1 flex flex-col px-10 overflow-hidden">

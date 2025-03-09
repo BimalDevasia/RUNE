@@ -12,8 +12,7 @@ import { Link, useLocation, useParams } from "react-router";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import {useState} from 'react'
+import { useNavigate } from "react-router-dom";
 const navlinks = [
   { id: "Bookmark chats", icons: <IoBookOutline className="w-6 h-6" /> },
   { id: "Settings", icons: <MdOutlineSettings className="w-6 h-6" /> },
@@ -38,7 +37,9 @@ function SideBar(props: props) {
   const query = useQuery({
     queryKey: ["chats"],
     queryFn: async () => {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL!}/chat`);
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL!}/api/chat/`
+      );
 
       return response.data;
     },
@@ -46,15 +47,15 @@ function SideBar(props: props) {
 
   const chats = query.isLoading ? [] : query.data;
 
-const { logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const [showConfirmation, setShowConfirmation] = useState(false);
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/login'); // Redirect to login page after logout
+      navigate("/login"); // Redirect to login page after logout
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
   };
   return (
@@ -84,7 +85,7 @@ const { logout } = useAuth();
           <FiPlusCircle className="w-6 h-6" />{" "}
           <p className="font-semibold">New Chat</p>
         </Link>
-        {navlinks.map((items) => {
+        {navlinks?.map((items) => {
           return (
             <div
               key={items.id}
@@ -107,7 +108,7 @@ const { logout } = useAuth();
         ))}
       <div className="flex-1 overflow-auto px-4 font-roboto custom-scroll ">
         <div className="overflow-y-auto flex-1   font-light text-sm flex flex-col gap-1">
-          {chats.map((chat) => (
+          {chats?.map((chat) => (
             <Link
               key={chat.chat_id}
               className={twMerge(
@@ -131,40 +132,47 @@ const { logout } = useAuth();
           }`}
         >
           <div className="flex items-center gap-2 ">
-            <img
+            {/* <img
               src="./user.jpeg"
               alt=""
               className="w-11 h-11 object-cover object-center rounded-full"
-            />
+            /> */}
 
             <div>
               <p className="text-[14px]">{props.user.name}</p>
               <p className="text-[13px]">{props.user.email}</p>
             </div>
 
-            <button className="ml-auto" onClick={() => setShowConfirmation(true)}>Logout</button>
+            <button
+              className="ml-auto"
+              onClick={() => setShowConfirmation(true)}
+            >
+              Logout
+            </button>
             {showConfirmation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-[#09090A] border border-[#DDC165] p-6 rounded-lg max-w-sm w-full">
-            <h3 className="text-xl text-white mb-4">Confirm Logout</h3>
-            <p className="text-gray-300 mb-6">Are you sure you want to logout?</p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowConfirmation(false)}
-                className="px-4 py-2 border border-gray-500 text-white rounded hover:bg-gray-800"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-[#09090A] border border-[#DDC165] p-6 rounded-lg max-w-sm w-full">
+                  <h3 className="text-xl text-white mb-4">Confirm Logout</h3>
+                  <p className="text-gray-300 mb-6">
+                    Are you sure you want to logout?
+                  </p>
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => setShowConfirmation(false)}
+                      className="px-4 py-2 border border-gray-500 text-white rounded hover:bg-gray-800"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div

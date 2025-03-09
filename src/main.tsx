@@ -22,9 +22,9 @@ createRoot(document.getElementById("root")!).render(
           <BrowserRouter>
             <Routes>
               <Route element={<ProtectedRoute />}>
-                 <Route path="/" element={<NewChatInterface />} />
-                 <Route path="/chat/:chat_id" element={<App />} />
-                 <Route path="/profile" element={<Profile />}>
+                <Route path="/" element={<NewChatInterface />} />
+                <Route path="/chat/:chat_id" element={<App />} />
+                <Route path="/profile" element={<Profile />} />
               </Route>
               {/* <Route path="/profile" element={<Profile />}>
                 <Route path=":proid" element={<Profile />} />
@@ -34,7 +34,7 @@ createRoot(document.getElementById("root")!).render(
             </Routes>
           </BrowserRouter>
         </ThemeProvider>
-
+      </AuthProvider>
     </QueryClientProvider>
   </StrictMode>
 );
