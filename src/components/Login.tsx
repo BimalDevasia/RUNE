@@ -20,6 +20,7 @@ function Login() {
                 id="email"
                 className="peer w-full pt-2 focus:outline-none border-b-2 border-white bg-transparent h-10 text-white text-[16px]"
                 placeholder=" "
+                autoComplete='off'
                 required
               />
               <label
@@ -38,6 +39,7 @@ function Login() {
                 id="password"
                 className="peer w-full pt-2 pr-10 focus:outline-none border-b-2 border-white bg-transparent h-10 text-white text-[16px] "
                 placeholder=" "
+                autoComplete='off'
                 required
               />
               <label

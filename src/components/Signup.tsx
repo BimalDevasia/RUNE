@@ -19,6 +19,7 @@ function Signup() {
                                 id="name"
                                 className="peer w-full pt-2 focus:outline-none border-b-2 border-white bg-transparent h-10 text-white text-base"
                                 placeholder=" "
+                                autoComplete='off'
                                 required
                             />
                             <label
@@ -37,6 +38,7 @@ function Signup() {
                                 id="email"
                                 className="peer w-full pt-2 focus:outline-none border-b-2 border-white bg-transparent h-10 text-white text-base"
                                 placeholder=" "
+                                autoComplete='off'
                                 required
                             />
                             <label
@@ -55,6 +57,7 @@ function Signup() {
                                 id="password"
                                 className="peer w-full pt-2 pr-10 focus:outline-none border-b-2 border-white bg-transparent h-10 text-white text-base"
                                 placeholder=" "
+                                autoComplete='off'
                                 required
                             />
                             <label
@@ -80,6 +83,7 @@ function Signup() {
                                 id="confirmPassword"
                                 className="peer w-full pt-2 pr-10 focus:outline-none border-b-2 border-white bg-transparent h-10 text-white text-base"
                                 placeholder=" "
+                                autoComplete='off'
                                 required
                             />
                             <label
