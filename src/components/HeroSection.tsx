@@ -1,4 +1,5 @@
 import "./customscroll.css"
+import { Link } from "react-router";
 
 function HeroSection() {
     return (
@@ -11,10 +12,10 @@ function HeroSection() {
           <div className="font-sen z-10 text-7xl text-[#DDC165] w-full font-bold">RUNE</div>
           <div className="flex gap-3">
             <div className="w-32 h-10 bg-primary_green flex justify-center items-center rounded-2xl font-bold">
-              LOGIN
+              <Link to="/login">LOGIN</Link>
             </div>
             <div className="w-32 h-10 bg-primary_green flex justify-center items-center rounded-2xl font-bold">
-              SIGN IN
+            <Link to="/login">SIGN IN</Link>
             </div>
           </div>
         </div>
