@@ -4,7 +4,8 @@ module.exports = {
     extend: {
       fontFamily: {
         roboto: ['Roboto', 'sans-serif'],
-        sen: ["Sen", 'sans-serif']
+        sen: ["Sen", 'sans-serif'],
+        ubuntu_mono:['Ubuntu Mono','monospace']
       },
       colors:{
         primary_green:"#3EB489",

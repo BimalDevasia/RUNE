@@ -1,8 +1,13 @@
-import React from 'react'
+
+import HeroSection from './HeroSection'
+import SecondPage from './SecondPage'
 
 function MainPage() {
   return (
-    <div>MainPage</div>
+    <div className='overflow-hidden'>
+    <HeroSection/>
+    <SecondPage/> 
+    </div>
   )
 }
 
