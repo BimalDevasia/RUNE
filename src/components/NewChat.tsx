@@ -96,6 +96,9 @@ function NewChat() {
 
         <div className="flex-1 flex flex-col px-10 overflow-hidden">
           <div className="flex-1 py-4 px-2 space-y-4 flex flex-col  overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent custom-scroll">
+            <div className="flex h-full items-center justify-center">
+              <h1 className="text-6xl font-medium">Start a new chat</h1>
+            </div>
             <div ref={messagesEndRef} />
           </div>
 

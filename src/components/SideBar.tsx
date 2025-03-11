@@ -13,27 +13,25 @@ import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from "react-router-dom";
+
+type Chat = {
+  title: string;
+  chat_id: string;
+};
+
 const navlinks = [
   { id: "Bookmark chats", icons: <IoBookOutline className="w-6 h-6" /> },
   { id: "Settings", icons: <MdOutlineSettings className="w-6 h-6" /> },
   { id: "About us", icons: <RiInformation2Line className="w-6 h-6" /> },
 ];
 
-interface userInfo {
-  id: string;
-  email: string;
-}
-
-interface props {
-  user: userInfo;
-}
-
-function SideBar(props: props) {
+function SideBar() {
   const { theme, toggleTheme } = useTheme();
   const [isSelected, setIsSelected] = useState("");
   const location = useLocation();
   const pathname = location.pathname;
   const { chat_id } = useParams();
+  const { user } = useAuth();
   const query = useQuery({
     queryKey: ["chats"],
     queryFn: async () => {
@@ -41,7 +39,7 @@ function SideBar(props: props) {
         `${import.meta.env.VITE_API_URL!}/api/chat/`
       );
 
-      return response.data;
+      return response.data as Chat[];
     },
   });
 
@@ -78,9 +76,9 @@ function SideBar(props: props) {
         <Link
           className={twMerge(
             "flex gap-4 items-center cursor-pointer px-4 rounded-xl h-10 ",
-            pathname === "/" && "bg-primary_green"
+            pathname === "/chat" && "bg-primary_green"
           )}
-          to="/"
+          to="/chat"
         >
           <FiPlusCircle className="w-6 h-6" />{" "}
           <p className="font-semibold">New Chat</p>
@@ -108,7 +106,7 @@ function SideBar(props: props) {
         ))}
       <div className="flex-1 overflow-auto px-4 font-roboto custom-scroll ">
         <div className="overflow-y-auto flex-1   font-light text-sm flex flex-col gap-1">
-          {chats?.map((chat:any) => (
+          {chats?.map((chat: Chat) => (
             <Link
               key={chat.chat_id}
               className={twMerge(
@@ -139,8 +137,8 @@ function SideBar(props: props) {
             /> */}
 
             <div>
-              <p className="text-[14px]">{props.user.name}</p>
-              <p className="text-[13px]">{props.user.email}</p>
+              <p className="text-[14px]">{user?.name}</p>
+              <p className="text-[13px]">{user?.email}</p>
             </div>
 
             <button

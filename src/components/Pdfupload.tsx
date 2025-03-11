@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
-import { Upload } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import React, { useState, useCallback, useId } from "react";
+import { Upload } from "lucide-react";
+import { useTheme } from "../contexts/ThemeContext";
 import { twMerge } from "tailwind-merge";
 
 interface PDFUploadProps {
@@ -14,12 +14,12 @@ interface ThemeContextType {
 
 function PDFUpload({ onFileUpload, uploadFile }: PDFUploadProps): JSX.Element {
   const [isDragging, setIsDragging] = useState<boolean>(false);
-
   const [loading, setLoading] = useState(false);
-
   const [file, setFile] = useState<File | null>(null);
-
   const { theme } = useTheme() as ThemeContextType;
+
+  // Generate a unique id for the file input
+  const fileInputId = useId();
 
   const clearpdf = () => {
     setFile(null);
@@ -58,10 +58,10 @@ function PDFUpload({ onFileUpload, uploadFile }: PDFUploadProps): JSX.Element {
       <div
         className={twMerge(
           "w-full p-2 rounded-lg flex flex-col justify-center items-center",
-          theme == "dark" ? "bg-black" : "bg-white"
+          theme === "dark" ? "bg-black" : "bg-white"
         )}
       >
-        <div className=" w-full  ">
+        <div className="w-full">
           <div
             className={twMerge(
               "border-2 border-dashed rounded-lg w-full text-center cursor-pointer h-[67px] flex justify-center items-center",
@@ -82,13 +82,15 @@ function PDFUpload({ onFileUpload, uploadFile }: PDFUploadProps): JSX.Element {
               accept=".pdf"
               onChange={handleFileChange}
               className="hidden"
-              id="pdf-upload"
+              id={fileInputId} // Use the unique id here
             />
-            <label htmlFor="pdf-upload" className="cursor-pointer">
+            <label htmlFor={fileInputId} className="cursor-pointer">
               <Upload className="mx-auto w-3 h-3 text-primary_green mb-2" />
               {file ? (
                 <p
-                  className={`text-[11px] {theme === 'dark' ? 'text-white' : 'text-black'}`}
+                  className={`text-[11px] ${
+                    theme === "dark" ? "text-white" : "text-black"
+                  }`}
                 >
                   {file.name}
                 </p>
@@ -96,7 +98,7 @@ function PDFUpload({ onFileUpload, uploadFile }: PDFUploadProps): JSX.Element {
                 <div>
                   <p
                     className={twMerge(
-                      `text-sm`,
+                      "text-sm",
                       theme === "dark" ? "text-white/50" : "text-black/50"
                     )}
                   >
@@ -107,8 +109,6 @@ function PDFUpload({ onFileUpload, uploadFile }: PDFUploadProps): JSX.Element {
             </label>
           </div>
         </div>
-        {/* for uploaded */}
-
         <div className="w-full pt-2">
           <div className="flex gap-3 w-full text-sm">
             <button
@@ -120,13 +120,13 @@ function PDFUpload({ onFileUpload, uploadFile }: PDFUploadProps): JSX.Element {
             >
               Cancel
             </button>
-
             <button
               type="button"
               onClick={async () => {
                 if (file) {
                   setLoading(true);
                   await uploadFile(file);
+                  clearpdf();
                   setLoading(false);
                 }
               }}
