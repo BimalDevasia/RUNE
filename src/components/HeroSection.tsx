@@ -1,7 +1,20 @@
+import { useAuth } from "../contexts/AuthContext";
 import "./customscroll.css"
 import { Link } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 function HeroSection() {
+  const { user,logout }=useAuth()
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login"); // Redirect to login page after logout
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
     return (
       <div
         className="no_overflow w-svw h-svh flex flex-col bg-cover bg-center overflow-hidden"
