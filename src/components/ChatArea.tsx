@@ -7,28 +7,39 @@ import Pdfupload from "./Pdfupload";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router";
-import { DeleteIcon } from "lucide-react";
+import { DeleteIcon, GraduationCap, WalletCards } from "lucide-react";
+import Markdown from "react-markdown";
+import { useAuth } from "../contexts/AuthContext";
+import FileItem from "./FileItem";
+import MCQPanel from "./MCQPanel";
+import FlashCardPanel from "./FlashCardPanel";
 
-interface UserInfo {
-  id: string;
-  email: string;
-}
+type ChatMessage = {
+  is_bot: boolean;
+  content: string;
+};
 
-interface ChatAreaProps {
-  isSelected: string;
-  setIsSelected: (id: string) => void;
-  user: UserInfo;
-}
+type FileType = {
+  file_id: string;
+  file_name: string;
+  file_type: string;
+  status: string;
+};
 
-function ChatArea({ user, isSelected }: ChatAreaProps) {
+function ChatArea() {
   const [isBookMarked, setIsBookMarked] = useState(false);
+  const [openMCQ, setOpenMCQ] = useState(false);
+  const [openFlashCard, setOpenFlashCard] = useState(false);
   const { theme } = useTheme();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [currentMessage, setCurrentMessage] = useState("");
   const queryClient = useQueryClient();
   const [finalMessage, setFinalMessage] = useState("");
-  const [chatStage, setChatStage] = useState<"idle" | "active">("idle");
+  const { user } = useAuth();
+  const [chatStage, setChatStage] = useState<"idle" | "loading" | "active">(
+    "idle"
+  );
   const navigate = useNavigate();
   const { chat_id } = useParams();
 
@@ -40,9 +51,8 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
       );
       setChatStage("idle");
       setFinalMessage("");
-      return res.data.messages;
+      return res.data.messages as ChatMessage[];
     },
-    disabled: isSelected === "",
   });
 
   const deleteChatMutation = useMutation({
@@ -59,20 +69,21 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
     },
   });
 
-  // const pdfquery = useQuery({
-  //   queryKey: ["messages", isSelected],
-  //   queryFn: async () => {
-  //     const res = await axios.get(
-  //       `${import.meta.env.VITE_API_URL!}/chat/${isSelected}/pdfs`
-  //     );
-  //     return {};
-  //   },
-  //   disabled: isSelected === "",
-  // });
+  const files = useQuery({
+    queryKey: [`files_${chat_id}`],
+    queryFn: async () => {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL!}/api/upload/${chat_id}/`
+      );
+      return res.data as FileType[];
+    },
+  });
+
+  console.log({ files: files.data });
 
   const { mutate: sendChatMutation } = useMutation({
     mutationFn: async (message: string) => {
-      setChatStage("active");
+      setChatStage("loading");
       scrollToBottom();
       const token = localStorage.getItem("token") ?? "";
       const response = await fetch(
@@ -105,6 +116,7 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
       while (!done) {
         const { value, done: doneReading } = await reader.read();
         done = doneReading;
+        setChatStage("active");
         if (value) {
           // Decode the received chunk and update the message state
           const chunk = decoder.decode(value, { stream: !done });
@@ -131,6 +143,10 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
   };
 
   useEffect(() => {
+    scrollToBottom();
+  }, []);
+
+  useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = "inherit";
@@ -153,17 +169,16 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (currentMessage.trim()) {
-      // const newMessage: Message = {
-      //   is_bot: false,
-      //   content: currentMessage.trim(),
-      // };
-      queryClient.setQueryData(["messages", chat_id], (oldData) => [
-        ...oldData,
-        {
-          is_bot: false,
-          content: currentMessage.trim(),
-        },
-      ]);
+      queryClient.setQueryData(
+        ["messages", chat_id],
+        (oldData: ChatMessage[]) => [
+          ...oldData,
+          {
+            is_bot: false,
+            content: currentMessage.trim(),
+          },
+        ]
+      );
       sendChatMutation(currentMessage.trim());
       setCurrentMessage("");
       if (textareaRef.current) {
@@ -173,25 +188,32 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
   };
 
   // ... existing code ...
-  const uploadSylabus = async (file: File) => {
+  const uploadSyllabus = async (file: File) => {
     console.log({
       file,
     });
     const formData = new FormData();
 
-    formData.append("file", file); // Append the file to the FormData object
-    formData.append("chat_id", chat_id);
+    formData.append("file", file);
+    formData.append("chat_id", chat_id ?? "");
+    formData.append("file_type", "syllabus");
+
+    const token = localStorage.getItem("token") ?? "";
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL!}/upload/new`,
+        `${import.meta.env.VITE_API_URL!}/api/upload/new`,
         {
           method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
           body: formData,
         }
       );
-      const data = await response.json(); // Handle the response
-      console.log(data);
+
+      console.log(response.status);
+      files.refetch();
     } catch (error) {
       console.error("Error uploading file:", error); // Handle the error
     }
@@ -203,19 +225,32 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
     });
     const formData = new FormData();
     formData.append("file", file); // Append the file to the FormData object
-    formData.append("chat_id", chat_id);
+    formData.append("chat_id", chat_id ?? "");
+    formData.append("file_type", "notes");
+
+    const token = localStorage.getItem("token") ?? "";
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL!}/upload`, {
-        method: "POST",
-        body: formData,
-      });
-      const data = await response.json(); // Handle the response
-      console.log(data);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL!}/api/upload/new`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      console.log(response.status);
+      files.refetch();
     } catch (error) {
       console.error("Error uploading file:", error); // Handle the error
     }
   };
-  // ... existing code ...
+
+  const syllabusFile = files.data?.find(
+    (file) => file.file_type === "syllabus"
+  );
 
   return (
     <div
@@ -225,6 +260,15 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
           : "bg-black/10 text-black"
       } flex-1 my-4 mr-4 rounded-[20px] font-roboto`}
     >
+      {openMCQ && (
+        <MCQPanel onClose={() => setOpenMCQ(false)} chat_id={chat_id ?? ""} />
+      )}
+      {openFlashCard && (
+        <FlashCardPanel
+          onClose={() => setOpenFlashCard(false)}
+          chat_id={chat_id ?? ""}
+        />
+      )}
       <div
         className={`flex-1 border-r-[0.5px] flex flex-col ${
           theme === "dark" ? "border-white/50" : "border-primary_grey/50"
@@ -235,12 +279,19 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
             theme === "dark" ? "border-white/50" : "border-primary_grey/50"
           }`}
         >
-          <div>Welcome {user.name}!</div>
+          <div>Welcome {user?.name}!</div>
           <div className="flex gap-4">
+            <button onClick={() => setOpenMCQ(true)}>
+              <GraduationCap className="w-6 h-6" />
+            </button>
+            <button onClick={() => setOpenFlashCard(true)}>
+              <WalletCards className="w-6 h-6" />
+            </button>
+
             <button
               onClick={async () => {
                 deleteChatMutation.mutateAsync();
-                navigate("/");
+                navigate("/chat");
               }}
             >
               <DeleteIcon className="w-6 h-6" />
@@ -260,27 +311,6 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
 
         <div className="flex-1 flex flex-col px-10 overflow-hidden">
           <div className="flex-1 py-4 px-2 space-y-4 flex flex-col  overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent custom-scroll">
-            {/* {messages.map((item, index) => (
-              <div
-                key={index}
-                className={`flex w-full ${
-                  item.is_bot !== false ? "justify-start" : "justify-end"
-                }`}
-              >
-                <div
-                  className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                    item.is_bot !== false
-                      ? theme === "dark"
-                        ? "bg-gray-700"
-                        : "bg-white"
-                      : "bg-primary_green text-white"
-                  } `}
-                >
-                  {item.content}
-                </div>
-              </div>
-            ))} */}
-
             {chatquery.data &&
               chatquery.data?.map((item, index) => (
                 <div
@@ -290,7 +320,7 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
                   }`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                    className={`max-w-[80%] rounded-lg px-4 py-2 [word-break:break-word] ${
                       item.is_bot !== false
                         ? theme === "dark"
                           ? "bg-gray-700"
@@ -298,18 +328,21 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
                         : "bg-primary_green text-white"
                     } `}
                   >
-                    {item.content}
+                    <Markdown>{item.content}</Markdown>
                   </div>
                 </div>
               ))}
-            {chatStage === "active" && finalMessage !== "" && (
+            {chatStage !== "idle" && (
               <div className={`flex w-full justify-start`}>
                 <div
                   className={`max-w-[80%] rounded-lg px-4 py-2 ${
                     theme === "dark" ? "bg-gray-700" : "bg-white"
                   } `}
                 >
-                  {finalMessage}
+                  {chatStage === "loading" && "Loading..."}
+                  {chatStage === "active" && (
+                    <Markdown>{finalMessage}</Markdown>
+                  )}
                 </div>
               </div>
             )}
@@ -368,19 +401,49 @@ function ChatArea({ user, isSelected }: ChatAreaProps) {
         </div>
 
         <div className="px-5">
-          <div>
-            <p className="py-2 pt-3">Upload syllabus</p>
-            <Pdfupload uploadFile={uploadSylabus} />
-          </div>
+          {files.data?.some((file) => file.file_type === "syllabus") ? (
+            <div>
+              <p className="py-2 pt-3">Syllabus</p>
+              <FileItem
+                fileid={syllabusFile?.file_id ?? ""}
+                key={syllabusFile?.file_id ?? ""}
+                filename={syllabusFile?.file_name ?? ""}
+                filestatus={syllabusFile?.status ?? ""}
+              />
+            </div>
+          ) : (
+            <div>
+              <p className="py-2 pt-3">Upload syllabus</p>
+              <Pdfupload key="syllabus" uploadFile={uploadSyllabus} />
+            </div>
+          )}
 
           <div>
             <p className="py-2 pt-3">Upload notes</p>
-            <Pdfupload uploadFile={uploadNotes} />
+            <Pdfupload key="notes" uploadFile={uploadNotes} />
           </div>
+          {files.data?.some((file) => file.file_type === "notes") && (
+            <div>
+              <p className="py-2 pt-3">Notes</p>
+              {files.data?.map((file) => {
+                if (file.file_type === "notes") {
+                  return (
+                    <FileItem
+                      fileid={file.file_id}
+                      key={file.file_id}
+                      filename={file.file_name}
+                      filestatus={file.status}
+                    />
+                  );
+                }
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
+
 
 export default ChatArea;

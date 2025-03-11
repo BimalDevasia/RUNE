@@ -28,7 +28,7 @@ function Login() {
     try {
       await login(email, password);
       console.log("Sending Login Request:", { email, password });
-      navigate('/'); // Redirect to home page after successful login
+      navigate("/chat"); // Redirect to home page after successful login
     } catch (err) {
       // Authentication errors are handled by the context
       console.error('Login error:', err);
