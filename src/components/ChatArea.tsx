@@ -44,14 +44,19 @@ function ChatArea() {
   const { chat_id } = useParams();
 
   const chatquery = useQuery({
-    queryKey: ["messages", chat_id],
+    queryKey: [`messages_${chat_id}`],
     queryFn: async () => {
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL!}/api/chat/${chat_id}/messages`
       );
       setChatStage("idle");
       setFinalMessage("");
-      return res.data.messages as ChatMessage[];
+
+      const messages = res.data.messages as ChatMessage[];
+      return {
+        messages,
+        bookmarked: res.data.bookmarked as string,
+      };
     },
   });
 
@@ -80,6 +85,23 @@ function ChatArea() {
   });
 
   console.log({ files: files.data });
+
+  const bookmarkMutation = useMutation({
+    mutationFn: async () => {
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL!}/api/chat/bookmark/${chat_id}/`
+      );
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["bookmark"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [`messages_${chat_id}`],
+      });
+    },
+  });
 
   const { mutate: sendChatMutation } = useMutation({
     mutationFn: async (message: string) => {
@@ -162,7 +184,8 @@ function ChatArea() {
     }
   }, [currentMessage]);
 
-  const handleBookmark = () => {
+  const handleBookmark = async () => {
+    await bookmarkMutation.mutateAsync();
     setIsBookMarked(!isBookMarked);
   };
 
@@ -170,14 +193,17 @@ function ChatArea() {
     e.preventDefault();
     if (currentMessage.trim()) {
       queryClient.setQueryData(
-        ["messages", chat_id],
-        (oldData: ChatMessage[]) => [
+        [`messages_${chat_id}`],
+        (oldData: { bookmarked: boolean; messages: ChatMessage[] }) => ({
           ...oldData,
-          {
-            is_bot: false,
-            content: currentMessage.trim(),
-          },
-        ]
+          messages: [
+            ...oldData.messages,
+            {
+              is_bot: false,
+              content: currentMessage.trim(),
+            },
+          ],
+        })
       );
       sendChatMutation(currentMessage.trim());
       setCurrentMessage("");
@@ -298,7 +324,7 @@ function ChatArea() {
             </button>
             <IoBookOutline
               className={`w-6 h-6 cursor-pointer ${
-                isBookMarked
+                chatquery.data?.bookmarked
                   ? "text-primary_green"
                   : theme === "dark"
                   ? "text-white"
@@ -312,7 +338,7 @@ function ChatArea() {
         <div className="flex-1 flex flex-col px-10 overflow-hidden">
           <div className="flex-1 py-4 px-2 space-y-4 flex flex-col  overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent custom-scroll">
             {chatquery.data &&
-              chatquery.data?.map((item, index) => (
+              chatquery.data?.messages.map((item, index) => (
                 <div
                   key={index}
                   className={`flex w-full ${
