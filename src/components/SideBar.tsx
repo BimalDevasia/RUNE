@@ -1,6 +1,5 @@
 import { FiPlusCircle } from "react-icons/fi";
 import { IoBookOutline } from "react-icons/io5";
-import { MdOutlineSettings } from "react-icons/md";
 import { RiInformation2Line } from "react-icons/ri";
 import { useTheme } from "../contexts/ThemeContext";
 import { MdDarkMode } from "react-icons/md";
@@ -11,23 +10,25 @@ import axios from "axios";
 import { Link, useLocation, useParams } from "react-router";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 type Chat = {
   title: string;
   chat_id: string;
+  bookmarked: boolean;
 };
 
 const navlinks = [
+  { id: "All chats", icons: <IoBookOutline className="w-6 h-6" /> },
   { id: "Bookmark chats", icons: <IoBookOutline className="w-6 h-6" /> },
-  { id: "Settings", icons: <MdOutlineSettings className="w-6 h-6" /> },
+
   { id: "About us", icons: <RiInformation2Line className="w-6 h-6" /> },
 ];
 
 function SideBar() {
   const { theme, toggleTheme } = useTheme();
-  const [isSelected, setIsSelected] = useState("");
+  const [isSelected, setIsSelected] = useState("All chats");
   const location = useLocation();
   const pathname = location.pathname;
   const { chat_id } = useParams();
@@ -37,6 +38,17 @@ function SideBar() {
     queryFn: async () => {
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL!}/api/chat/`
+      );
+
+      return response.data as Chat[];
+    },
+  });
+
+  const bookmarkquery = useQuery({
+    queryKey: ["bookmark"],
+    queryFn: async () => {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL!}/api/chat/bookmark/`
       );
 
       return response.data as Chat[];
@@ -75,8 +87,7 @@ function SideBar() {
       <div>
         <Link
           className={twMerge(
-            "flex gap-4 items-center cursor-pointer px-4 rounded-xl h-10 ",
-            pathname === "/chat" && "bg-primary_green"
+            "flex gap-4 items-center cursor-pointer px-4 rounded-xl h-10 "
           )}
           to="/chat"
         >
@@ -106,20 +117,36 @@ function SideBar() {
         ))}
       <div className="flex-1 overflow-auto px-4 font-roboto custom-scroll ">
         <div className="overflow-y-auto flex-1   font-light text-sm flex flex-col gap-1">
-          {chats?.map((chat: Chat) => (
-            <Link
-              key={chat.chat_id}
-              className={twMerge(
-                "border border-white/50 px-3 py-2 rounded-sm",
-                chat_id === chat.chat_id &&
-                  "bg-white/70 text-black font-medium",
-                chat_id !== chat.chat_id && "hover:bg-slate-700"
-              )}
-              to={`/chat/${chat.chat_id}`}
-            >
-              {chat.title}
-            </Link>
-          ))}
+          {isSelected === "All chats" &&
+            chats?.map((chat) => (
+              <Link
+                key={chat.chat_id}
+                className={twMerge(
+                  "border border-white/50 px-3 py-2 rounded-sm",
+                  chat_id === chat.chat_id &&
+                    "bg-white/70 text-black font-medium",
+                  chat_id !== chat.chat_id && "hover:bg-slate-700"
+                )}
+                to={`/chat/${chat.chat_id}`}
+              >
+                {chat.title}
+              </Link>
+            ))}
+          {isSelected === "Bookmark chats" &&
+            bookmarkquery.data?.map((chat) => (
+              <Link
+                key={chat.chat_id}
+                className={twMerge(
+                  "border border-white/50 px-3 py-2 rounded-sm",
+                  chat_id === chat.chat_id &&
+                    "bg-white/70 text-black font-medium",
+                  chat_id !== chat.chat_id && "hover:bg-slate-700"
+                )}
+                to={`/chat/${chat.chat_id}`}
+              >
+                {chat.title}
+              </Link>
+            ))}
         </div>
       </div>
 
